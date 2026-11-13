@@ -36,5 +36,4 @@ The token is stored in the macOS Keychain. Other settings are stored in UserDefa
 
 - Only **production** deployments are checked. Canceled deployments are skipped, since Vercel cancels builds superseded by newer pushes.
 - The commit hash and message come from the deployment's git metadata, so deploys not triggered from git fall back to the deployment ID and show no message.
-- `docs/screenshot.png` is rendered with fake data: `VercelWatch.app/Contents/MacOS/VercelWatch --screenshot docs/screenshot.png`.
 - `tools/icon.swift` generates the app icon (`Resources/AppIcon.icns`).
