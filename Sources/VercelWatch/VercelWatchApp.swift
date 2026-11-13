@@ -91,10 +91,37 @@ final class Store: ObservableObject {
     private var timer: Timer?
 
     init() {
+        if let i = CommandLine.arguments.firstIndex(of: "--screenshot"), i + 1 < CommandLine.arguments.count {
+            renderScreenshot(to: CommandLine.arguments[i + 1])
+            return
+        }
         timer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
             Task { @MainActor in await self?.refresh() }
         }
         Task { await refresh() }
+    }
+
+    /// Renders the popover with fake data to a PNG, then exits. Used for the README.
+    private func renderScreenshot(to path: String) {
+        deploys = [
+            Deploy(id: "web", hash: "a3f9c21", status: .ready, error: nil, message: "Fix hero layout on small screens"),
+            Deploy(id: "admin", hash: "7be04d8", status: .building, error: nil, message: "Add CSV export to users table"),
+            Deploy(id: "api", hash: "19d5e60", status: .failed, error: nil, message: "Bump database client to v5"),
+            Deploy(id: "docs", hash: "c82a7f3", status: .ready, error: nil, message: "Document webhook retries"),
+        ]
+        DispatchQueue.main.async {
+            let view = ContentView(store: self)
+                .background(Color(nsColor: .windowBackgroundColor))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .environment(\.colorScheme, .light)
+            let r = ImageRenderer(content: view)
+            r.scale = 2
+            if let img = r.nsImage, let tiff = img.tiffRepresentation,
+               let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) {
+                try? png.write(to: URL(fileURLWithPath: path))
+            }
+            exit(0)
+        }
     }
 
     func save() {
